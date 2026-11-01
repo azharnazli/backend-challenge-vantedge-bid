@@ -1,13 +1,13 @@
-import type { Budget, Extraction } from "../types/analysis.js";
-import { MONTHS, MONTH_PATTERN } from "./months.js";
-import { STOPWORDS } from "./stopwords.js";
-import { TENDER_TERMS } from "./tender-terms.js";
+import type { Budget, Extraction } from "../types/analysis.ts";
+import { MONTHS, MONTH_PATTERN } from "./months.ts";
+import { STOPWORDS } from "./stopwords.ts";
+import { TENDER_TERMS } from "./tender-terms.ts";
 
 const DATE_PATTERN = new RegExp(
   String.raw`\b(\d{1,2})\s+(${MONTH_PATTERN})\s+(\d{4})\b`,
   "gi",
 );
-const BUDGET_PATTERN = /\brp\.?\s*([\d][\d.,]*)/gi;
+const BUDGET_PATTERN = /\brp\.?\s*(\d+(?:\.\d+)*(?:,\d+)?)/gi;
 
 const MAX_KEYWORDS = 15;
 
@@ -30,7 +30,9 @@ const extractKeywords = (text: string): string[] => {
 
 const extractTenderTerms = (text: string): string[] => {
   const haystack = text.toLowerCase();
-  return TENDER_TERMS.filter((term) => haystack.includes(term));
+  return TENDER_TERMS.filter((term) =>
+    new RegExp(`\\b${term}\\b`).test(haystack),
+  );
 };
 
 const extractDeadlines = (text: string): string[] => {
