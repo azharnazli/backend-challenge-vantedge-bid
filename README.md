@@ -16,6 +16,24 @@ keyword-extraction simulation, and stores the extraction result.
 
 Extraction is deterministic keyword/term/date/budget matching, not an LLM.
 
+## Flow
+
+```mermaid
+flowchart LR
+  A["POST /api/tenders/analyze"] --> B{"Non-empty text?"}
+  B -->|No| C["400 Bad Request"]
+  B -->|Yes| D["extract(text)"]
+  D --> E["repository.save(text, extraction)"]
+  E --> F{"Storage adapter<br/>selected at boot"}
+  F -->|DATABASE_URL set| G[("PostgreSQL<br/>analyses table")]
+  F -->|Otherwise| H[("In-memory Map")]
+  G --> I["200 response<br/>id, createdAt, extraction"]
+  H --> I
+```
+
+The request path is identical for both storage modes; only the injected
+repository differs.
+
 ## Folder structure
 
 ```
