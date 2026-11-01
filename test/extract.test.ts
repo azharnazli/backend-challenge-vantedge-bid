@@ -43,6 +43,14 @@ describe("extract", () => {
     expect(result.budgets[0]?.amount).toBe(2000.5);
   });
 
+  it("parses Indonesian amounts without a space after Rp", () => {
+    const result = extract("Anggaran Rp1.234.567,89");
+
+    expect(result.budgets).toEqual([
+      { raw: "Rp1.234.567,89", amount: 1_234_567.89, currency: "IDR" },
+    ]);
+  });
+
   it("does not include trailing punctuation in budget raw", () => {
     const result = extract(
       "Anggaran Rp 1.500.000.000, batas waktu 12 Desember 2026",
