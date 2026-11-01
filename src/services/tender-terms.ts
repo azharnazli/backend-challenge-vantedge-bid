@@ -1,0 +1,15 @@
+export const TENDER_TERMS = [
+  "tender",
+  "penawaran",
+  "anggaran",
+  "dokumen",
+  "kontrak",
+  "deadline",
+  "batas waktu",
+  "kualifikasi",
+  "ruang lingkup",
+  "harga",
+  "termin",
+  "vendor",
+  "menang",
+];
