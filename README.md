@@ -12,6 +12,7 @@ keyword-extraction simulation, and stores the extraction result.
 
 - `POST /api/tenders/analyze` accepts JSON `{ "text": "..." }` with non-empty text.
 - Returns 200 with `{ id, createdAt, extraction: { keywords, tenderTerms, deadlines, budgets } }`.
+- Duplicate text returns the existing analysis with the same `id` and `200`.
 - Returns 400 for invalid text, 500 for storage errors. No authentication or file upload.
 
 Extraction is deterministic keyword/term/date/budget matching, not an LLM.
@@ -23,7 +24,7 @@ flowchart LR
   A["POST /api/tenders/analyze"] --> B{"Non-empty text?"}
   B -->|No| C["400 Bad Request"]
   B -->|Yes| D["extract(text)"]
-  D --> E["repository.save(text, extraction)"]
+  D --> E["repository.save<br/>unique text hash"]
   E --> F{"Storage adapter<br/>selected at boot"}
   F -->|DATABASE_URL set| G[("PostgreSQL<br/>analyses table")]
   F -->|Otherwise| H[("In-memory Map")]
@@ -32,7 +33,8 @@ flowchart LR
 ```
 
 The request path is identical for both storage modes; only the injected
-repository differs.
+repository differs. The repository hashes normalized text and returns the
+existing analysis when that hash is already stored.
 
 ## Folder structure
 
@@ -53,9 +55,10 @@ Dockerfile       # API container image
 ## Storage
 
 The HTTP route calls a pure extraction service and an injected repository interface.
-When `DATABASE_URL` is set, the Postgres adapter stores analyses in the `analyses`
-table; otherwise the app uses in-memory storage (cleared on restart). The
-Postgres schema is created at startup using `sql/schema.sql`.
+Analyses are deduplicated by a SHA-256 hash of normalized text. When `DATABASE_URL`
+is set, the Postgres adapter stores analyses in the `analyses` table; otherwise the
+app uses in-memory storage (cleared on restart). The Postgres schema is created at
+startup using `sql/schema.sql`.
 
 ## How to run
 

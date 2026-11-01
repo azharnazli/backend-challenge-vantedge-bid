@@ -17,6 +17,20 @@ describe("in-memory analysis repository", () => {
     await expect(repository.findById(saved.id)).resolves.toEqual(saved);
   });
 
+  it("returns the existing analysis for duplicate text", async () => {
+    const repository = createInMemoryAnalysisRepository();
+    const text = "Tender pengadaan jasa konsultansi";
+    const extraction = extract(text);
+
+    const first = await repository.save(text, extraction);
+    const duplicate = await repository.save(
+      "  Tender   pengadaan   jasa konsultansi  ",
+      extraction,
+    );
+
+    expect(duplicate).toEqual(first);
+  });
+
   it("returns null for an unknown id", async () => {
     const repository = createInMemoryAnalysisRepository();
 

@@ -30,6 +30,19 @@ describe("POST /api/tenders/analyze", () => {
       body: JSON.stringify(body),
     });
 
+  const readId = async (response: Response): Promise<string> => {
+    const body: unknown = await response.json();
+    if (
+      body === null ||
+      typeof body !== "object" ||
+      !("id" in body) ||
+      typeof body.id !== "string"
+    ) {
+      throw new Error("Response missing id");
+    }
+    return body.id;
+  };
+
   it("returns saved analysis without exposing original text", async () => {
     const text =
       "Pembangunan gedung anggaran Rp 1.500.000.000, batas 12 Desember 2026";
@@ -63,6 +76,16 @@ describe("POST /api/tenders/analyze", () => {
     await expect(repository.findById(result.id)).resolves.toMatchObject({
       text,
     });
+  });
+
+  it("returns the existing analysis for duplicate text", async () => {
+    const text = "Tender duplikat pengadaan jasa konsultansi";
+    const first = await post({ text });
+    const second = await post({ text });
+
+    expect(first.status).toBe(200);
+    expect(second.status).toBe(200);
+    expect(await readId(second)).toBe(await readId(first));
   });
 
   it.each([{}, { text: "" }, { text: "  " }, { text: 42 }, { text: null }])(
